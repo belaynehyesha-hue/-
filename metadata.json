@@ -1,0 +1,6 @@
+{
+  "name": "የኮንስትራክሽን ግንባታዎች መረብ",
+  "description": "የኮንስትራክሽን ግንባታዎች መረብ - የባለቤትነት መብት በላይነህ የሻለም ብቻ",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

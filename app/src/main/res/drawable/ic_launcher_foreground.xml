@@ -1,0 +1,27 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Center of the 108dp canvas is (54, 54). Safe 66dp zone is from 21 to 87 -->
+    <!-- Stylized modern building towers -->
+    <path
+        android:fillColor="#FCD116"
+        android:pathData="M30,75 L30,45 L42,45 L42,32 L56,32 L56,22 L72,22 L72,75 Z" />
+    <!-- Building grid windows -->
+    <path
+        android:fillColor="#2B2D42"
+        android:pathData="M34,49h4v4h-4z M34,57h4v4h-4z M34,65h4v4h-4z M46,36h4v4h-4z M46,44h4v4h-4z M46,52h4v4h-4z M46,60h4v4h-4z M46,68h4v4h-4z M60,26h6v4h-6z M60,34h6v4h-6z M60,42h6v4h-6z M60,50h6v4h-6z M60,58h6v4h-6z M60,66h6v4h-6z" />
+    <!-- Ground foundation line -->
+    <path
+        android:strokeColor="#007A33"
+        android:strokeWidth="4"
+        android:strokeLineCap="round"
+        android:pathData="M20,75 L88,75" />
+    <!-- Crane lifting outline -->
+    <path
+        android:strokeColor="#C8102E"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:pathData="M75,75 L75,18 L88,18 M75,25 L88,18 M84,18 L84,30 L80,30" />
+</vector>
