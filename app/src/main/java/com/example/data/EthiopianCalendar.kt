@@ -171,9 +171,9 @@ object EthiopianCalendar {
         milestones.add(
             LeaseMilestone(
                 name = "የመጀመሪያ ደረጃ የጥራት ኦዲት (Excavation & Foundation Audit)",
-                description = "የህንፃ አዋጅ 624/2001 አንቀጽ 32 መሠረት መሠረት ቁፋሮ እንደተጠናቀቀ የሚደረግ ፍተሻ።",
+                description = "በአዲሱ የኢትዮጵያ ሕንፃ አዋጅ 1356/2017 ዓ.ም አንቀጽ 32 መሠረት መሠረት ቁፋሮ እንደተጠናቀቀ የሚደረግ ፍተሻ።",
                 date = EthiopianDate(startYear, startMonth, startDay).addDays(90),
-                lawArticle = "የህንፃ አዋጅ 624/2001 አንቀጽ 32",
+                lawArticle = "የህንፃ አዋጅ 1356/2017 ዓ.ም አንቀጽ 32",
                 penalty = "ቀጣይ የግንባታ ፈቃድ እገዳና የመዋቅር ደህንነት ስጋት ቅጣት።"
             )
         )

@@ -109,7 +109,7 @@ fun EbcsAiScreen(
                     border = BorderStroke(1.dp, AmharicYellow.copy(alpha = 0.5f))
                 ) {
                     Text(
-                        text = "🛡️ በEBCS እና ESEN ደንቦች መሠረት የሚመራ | ባለቤት፡ በላይነህ የሻለም ብቻ",
+                        text = "🛡️ በኢትዮጵያ ህንፃ ኮዶች (EBCS) እና ESEN ደንቦች መሠረት የሚመራ የዲዛይንና ቁጥጥር ስርዓት",
                         color = AmharicYellow,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
@@ -1593,20 +1593,23 @@ val allLibraryItems = listOf(
     ),
     CodeLibraryItem(
         id = "proc-building",
-        titleAm = "የኢትዮጵያ የህንፃ አዋጅ ቁጥር 624/2001 (Building Proclamation)",
-        titleEn = "Ethiopian Building Proclamation No. 624/2001 and Regulation 243/2003",
+        titleAm = "አዲሱ የኢትዮጵያ ሕንፃ አዋጅ ቁጥር 1356/2017 ዓ.ም (Building Proclamation)",
+        titleEn = "New Ethiopian Building Proclamation No. 1356/2017 and Regulations (Repealing 624/2001)",
         category = "PROCLAMATION",
-        description = "በከተሞች ውስጥ የሚገነቡ ህንጻዎች የሰዎችን ደህንነት፣ ጤንነትና ምቾት እንዲጠብቁ፣ የከተማን ውበት እንዲያሳድጉና በባለሙያ እንዲመሩ የወጣ አስገዳጅ ብሔራዊ የሕግ አዋጅ ነው።",
+        description = "የቀድሞውን አዋጅ 624/2001 በመተካት በ2017 ዓ.ም የወጣ አስገዳጅ ብሔራዊ የሕንፃ ሕግ ሲሆን፤ የህንፃዎች ምድብ (Category A, B, C, Mega)፣ ዲጂታል የግንባታ ፈቃድ፣ 7ቱ የሳይት ፍተሻዎች፣ የአካል ጉዳተኞች ተደራሽነትና የጋራ የሕግ ተጠያቂነትን ይደነግጋል።",
         keyClauses = listOf(
-            "አንቀጽ 4: የግንባታ ፈቃድ ማግኘት (Building Permit is mandatory before any construction)",
-            "አንቀጽ 32: የግንባታ ቁጥጥርና የጥራት ኦዲት (Authority inspections & Quality audits)",
-            "አንቀጽ 43: የመጠቀሚያ ፈቃድ (Occupancy Permit is required before utilizing the building)"
+            "አንቀጽ 4 እና 5: የህንፃዎች ምድብና ዲጂታል የግንባታ ፈቃድ (Building Categories A, B, C, Mega & Digital Permitting)",
+            "አንቀጽ 28: የአካል ጉዳተኞች ምቹነት (1:12 Ramps, Elevators, Accessible Washrooms)",
+            "አንቀጽ 32: 7ቱ አስገዳጅ የሳይት ፍተሻ ደረጃዎች (7 Mandatory Statutory Inspection Stages)",
+            "አንቀጽ 43: የመጠቀሚያ ፈቃድ (Occupancy Permit before building usage)",
+            "አንቀጽ 50: የጋራና የግል የሕግ ተጠያቂነትና ቅጣት (Joint & Several Liability, fines up to 1,000,000 ETB)"
         ),
         complianceCheckpoints = listOf(
-            "ያለ ግንባታ ፈቃድ የተጀመሩ ግንባታዎች በአዋጁ መሠረት እንዲፈርሱና ከባድ የገንዘብ ቅጣት እንዲጣልባቸው ሊደረግ እንደሚችል ማወቅ።",
-            "የግንባታ ባለሙያ ፊርማ (Professional stamp) በፌዴራል ወይም በክልል ፈቃድ ባለው መሐንዲስ መረጋገጡን መፈተሽ።"
+            "ያለ ህጋዊ ዲጂታል ፈቃድ የተጀመሩ ግንባታዎች ወዲያውኑ ይታገዳሉ፣ እንዲፈርሱ ይደረጋል፣ እስከ 1,000,000 ብር ቅጣትና ከ5-20 ዓመት እስራት ሊጣል ይችላል።",
+            "የዲዛይን አዘጋጅ፣ አማካሪና ተቋራጭ ለህንፃው መዋቅራዊ ደህንነት በጋራና በግል የሕግ ተጠያቂነት አለባቸው።",
+            "በሁሉም የህዝብ አገልግሎት መስጫ ህንፃዎች ውስጥ የአካል ጉዳተኞች ራምፕና ሊፍት መካተቱ በፕላንና በሳይት መረጋገጥ አለበት።"
         ),
-        regionalApplication = "በሁሉም የኢትዮጵያ ከተሞችና የክልል ከተማ አስተዳደሮች ውስጥ ሙሉ አስገዳጅነት አለው።"
+        regionalApplication = "በሁሉም የኢትዮጵያ ከተሞች፣ የክልል ከተማ አስተዳደሮችና የፌዴራል ፕሮጀክቶች ውስጥ ሙሉ አስገዳጅነት አለው።"
     ),
     CodeLibraryItem(
         id = "proc-lease",
@@ -2199,9 +2202,9 @@ suspend fun queryCodeLibraryWithGemini(query: String, selectedDocContext: String
             "5. AACRA Geometric & Drainage Design Manuals\n" +
             "6. BATCODA Guidelines & productivity constants\n" +
             "7. FIDIC Contract models (Red, Yellow, Silver, Green Books)\n" +
-            "8. Ethiopian Building Proclamation No. 624/2001 & Regulation 243/2003\n" +
+            "8. New Ethiopian Building Proclamation No. 1356/2017 & Regulations (Repealing 624/2001)\n" +
             "9. Ethiopian Urban Land Lease Proclamation No. 721/2011\n" +
-            "10. International codes such as ACI 318, ASTM, and IBC.\n\n" +
+            "10. International codes such as ACI 318, ASTM, OSHA 1926, ISO 45001, and IBC 2024.\n\n" +
             "The user is 'በላይነህ የሻለም ብቻ' (Senior Civil Engineer & Construction Network Owner). " +
             "Provide authoritative, accurate, and highly specific responses in Amharic with appropriate English technical terms. Always cite the relevant Proclamation Articles, EBCS Clauses, or FIDIC sections."
 
@@ -2238,6 +2241,12 @@ suspend fun queryCodeLibraryWithGemini(query: String, selectedDocContext: String
             val requestBodyJson = JSONObject().apply {
                 put("contents", contentsArray)
                 put("systemInstruction", systemInstructionJson)
+                // Real Google Search Grounding Tool
+                put("tools", JSONArray().apply {
+                    put(JSONObject().apply {
+                        put("google_search", JSONObject())
+                    })
+                })
             }
 
             val requestBody = requestBodyJson.toString().toRequestBody("application/json".toMediaType())
@@ -2250,14 +2259,58 @@ suspend fun queryCodeLibraryWithGemini(query: String, selectedDocContext: String
             if (response.isSuccessful) {
                 val responseString = response.body?.string()
                 if (responseString != null) {
-                    val candidates = JSONObject(responseString).getJSONArray("candidates")
-                    val generatedText = candidates.getJSONObject(0)
-                        .getJSONObject("content")
-                        .getJSONArray("parts")
-                        .getJSONObject(0)
-                        .getString("text")
-                    if (generatedText.isNotEmpty()) {
-                        return@withContext generatedText
+                    val rootJson = JSONObject(responseString)
+                    val candidates = rootJson.optJSONArray("candidates")
+                    if (candidates != null && candidates.length() > 0) {
+                        val firstCandidate = candidates.getJSONObject(0)
+                        val content = firstCandidate.optJSONObject("content")
+                        val parts = content?.optJSONArray("parts")
+                        val generatedText = parts?.optJSONObject(0)?.optString("text") ?: ""
+                        
+                        // Parse Google Search Grounding Metadata
+                        val groundingMetadata = firstCandidate.optJSONObject("groundingMetadata")
+                        var groundingText = ""
+                        if (groundingMetadata != null) {
+                            val webChunks = groundingMetadata.optJSONArray("groundingChunks")
+                            val searchQueries = groundingMetadata.optJSONArray("webSearchQueries")
+                            val citations = mutableListOf<String>()
+                            
+                            if (webChunks != null && webChunks.length() > 0) {
+                                for (i in 0 until minOf(webChunks.length(), 5)) {
+                                    val chunk = webChunks.optJSONObject(i)
+                                    val web = chunk?.optJSONObject("web")
+                                    val title = web?.optString("title")
+                                    val uri = web?.optString("uri")
+                                    if (!title.isNullOrBlank() && !uri.isNullOrBlank()) {
+                                        citations.add("🌐 [$title]($uri)")
+                                    }
+                                }
+                            }
+                            
+                            val queriesList = mutableListOf<String>()
+                            if (searchQueries != null) {
+                                for (j in 0 until searchQueries.length()) {
+                                    val q = searchQueries.optString(j)
+                                    if (!q.isNullOrBlank()) queriesList.add("'$q'")
+                                }
+                            }
+                            
+                            if (citations.isNotEmpty() || queriesList.isNotEmpty()) {
+                                val sb = StringBuilder("\n\n━━━━━━━━━━━━━━━━━━━━━━━\n")
+                                sb.append("🔍 **የተረጋገጡ የድረ-ገጽ ምንጮች (Google Search Grounding):**\n")
+                                if (queriesList.isNotEmpty()) {
+                                    sb.append("• የተከናወኑ ፍለጋዎች፡ ").append(queriesList.joinToString(", ")).append("\n")
+                                }
+                                citations.forEach { citation ->
+                                    sb.append("• ").append(citation).append("\n")
+                                }
+                                groundingText = sb.toString()
+                            }
+                        }
+
+                        if (generatedText.isNotEmpty()) {
+                            return@withContext generatedText + groundingText
+                        }
                     }
                 }
             }
@@ -2296,11 +2349,13 @@ suspend fun queryCodeLibraryWithGemini(query: String, selectedDocContext: String
             "3. **Concrete Cover (የአርማታ ብረት ሽፋን)፡** በአፈር ውስጥ ለሚቀበሩ መሠረቶች ቢያንስ 50mm፣ ለአምዶችና ጨረሮች 30mm-40mm መከላከያ ሽፋን መሰጠት አለበት።\n\n" +
             "ውድ መሐንዲስ በላይነህ የሻለም ብቻ፣ እነዚህ መመዘኛዎች የህንፃውን ዘላቂነት (Durability) እና የእሳት መቋቋም አቅም በቀጥታ የሚወስኑ ናቸው።"
         }
-        lower.contains("ፈቃድ") || lower.contains("permit") || lower.contains("ህንፃ አዋጅ") || lower.contains("proclamation") || lower.contains("624") -> {
-            "በኢትዮጵያ የህንፃ አዋጅ ቁጥር 624/2001 እና መመሪያ ቁጥር 243/2003 መሠረት የሚከተሉት ይደነግጋሉ፡-\n\n" +
-            "1. **የግንባታ ፈቃድ (አንቀጽ 4)፡** ማንኛውም ግንባታ ከመጀመሩ በፊት የዲዛይን ፕላን ለሚመለከተው የከተማ አስተዳደር ቀርቦ የግንባታ ፈቃድ ማግኘት አለበት። ያለፈቃድ መገንባት ግንባታው እንዲፈርስና የገንዘብ ቅጣት እንዲጣል ያደርጋል።\n" +
-            "2. **የመጠቀሚያ ፈቃድ (Occupancy Permit - አንቀጽ 43)፡** ግንባታው ሲጠናቀቅና በባለሙያዎች ጥራቱ ሲረጋገጥ የመጠቀሚያ ፈቃድ (Occupancy Permit) ማግኘት ግዴታ ነው። ያለዚህ ፈቃድ ህንጻውን መጠቀም የተከለከለ ነው።\n" +
-            "3. **ቁጥጥር (አንቀጽ 32)፡** የመንግስት ተቆጣጣሪ መሐንዲሶች ግንባታው በታወጀው ደረጃና ፕላን መሠረት እየተከናወነ መሆኑን በማንኛውም ጊዜ የመፈተሽ መብት አላቸው።"
+        lower.contains("ፈቃድ") || lower.contains("permit") || lower.contains("ህንፃ አዋጅ") || lower.contains("proclamation") || lower.contains("1356") || lower.contains("624") -> {
+            "በአዲሱ የኢትዮጵያ ሕንፃ አዋጅ ቁጥር 1356/2017 ዓ.ም (የቀድሞውን 624/2001 በመተካት በ2017 የፀደቀ) እና ደንብ ቁጥር 243/2003 መሠረት የሚከተሉት ይደነግጋሉ፡-\n\n" +
+            "1. **የህንፃዎች ምድብና ዲጂታል ፈቃድ (አንቀጽ 4 እና 5)፡** ህንፃዎች በምድብ ሀ፣ ለ፣ ሐ እና ሜጋ ፕሮጀክት ተከፍለዋል፤ ማንኛውም ግንባታ ከመጀመሩ በፊት ህጋዊ ዲጂታል የግንባታ ፈቃድ ማግኘት አለበት። ያለፈቃድ የተጀመረ ግንባታ ወዲያውኑ ይታገዳል፣ እንዲፈርስ ይደረጋል፣ እስከ 1,000,000 ብር ቅጣትና ከ5-20 ዓመት ፅኑ እስራት ያስከትላል።\n" +
+            "2. **7ቱ አስገዳጅ የሳይት ፍተሻ ደረጃዎች (አንቀጽ 32)፡** ቁፋሮ፣ መሰረት፣ ምሶሶ፣ ስላብ፣ መዋቅር፣ አገልግሎቶች እና ማጠናቀቂያ በባለስልጣን ተቆጣጣሪዎች በቦታው ተገኝተው መፈተሽ አለባቸው።\n" +
+            "3. **የአካል ጉዳተኞች ተደራሽነት (አንቀጽ 28)፡** በሁሉም የህዝብ አገልግሎት ህንፃዎች ውስጥ ራምፕ (1:12 ምጣኔ)፣ ሊፍትና ምቹ መጸዳጃ ቤት ማካተት አስገዳጅ ነው።\n" +
+            "4. **የመጠቀሚያ ፈቃድ (Occupancy Permit - አንቀጽ 43)፡** ግንባታው ሲጠናቀቅና ጥራቱ ሲረጋገጥ የመጠቀሚያ ፈቃድ ሳይገኝ ህንጻውን ለአገልግሎት ማዋል የተከለከለ ነው።\n" +
+            "5. **የጋራ የሕግ ተጠያቂነት (አንቀጽ 50)፡** ባለቤቱ፣ ዲዛይን አዘጋጁ፣ አማካሪውና ተቋራጩ ለመዋቅራዊ ደህንነትና አደጋዎች በጋራና በግል ተጠያቂ (Joint and Several Liability) ይሆናሉ።"
         }
         else -> {
             "ውድ ሲቪል መሐንዲስ በላይነህ የሻለም ብቻ፣ ላቀረቡት ጥያቄ፡ \"$query\" ምላሽ እንደሚከተለው ይቀርባል፡-\n\n" +

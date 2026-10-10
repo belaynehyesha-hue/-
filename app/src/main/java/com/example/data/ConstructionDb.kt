@@ -16,7 +16,13 @@ data class Artisan(
     val hasPermit: Boolean = true,
     val isAccredited: Boolean = true,
     val accreditationNote: String = "መደበኛ የሙያ ብቃት ዕውቅና",
-    val lastAccreditationUpdate: Long = System.currentTimeMillis()
+    val lastAccreditationUpdate: Long = System.currentTimeMillis(),
+    val cocLevel: String = "ደረጃ ፫ (Level III)", // CoC Level I to V
+    val issuingCenter: String = "የፌዴራል የሙያ ብቃትና ምዘና ኤጀንሲ (TVEA CoC Center)",
+    val nationalId: String = "",
+    val assignedProjectId: Int? = null,
+    val safetyTrainingCompleted: Boolean = true,
+    val licenseExpiryDate: Long = System.currentTimeMillis() + (365L * 24 * 3600 * 1000)
 )
 
 @Entity(tableName = "professionals")
@@ -30,8 +36,47 @@ data class Professional(
     val registrationDate: Long = System.currentTimeMillis(),
     val isAccredited: Boolean = true,
     val accreditationNote: String = "የተቋራጭ/አማካሪ የከተማ ፈቃድ እውቅና",
-    val lastAccreditationUpdate: Long = System.currentTimeMillis()
-)
+    val lastAccreditationUpdate: Long = System.currentTimeMillis(),
+    val email: String = "",
+    val nationalId: String = "", // National ID / Fayda ID / Kebele
+    val qualification: String = "BSc in Civil Engineering", // PhD, MSc, BSc, Diploma, TVET
+    val institutionGraduated: String = "Addis Ababa University (AAiT)",
+    val graduationYear: Int = 2018,
+    val experienceYears: Int = 5,
+    val fieldOfPractice: String = "ሲቪልና መዋቅር ምህንድስና (Civil & Structural)",
+    val muiRegistrationNo: String = "", // Ministry of Urban & Infrastructure Reg No
+    val licenseStatus: String = "ተገዢ (COMPLIANT)", // ተገዢ (COMPLIANT), ጊዜው ያለፈበት (EXPIRED), በግምገማ ላይ (PENDING), የታገደ (SUSPENDED)
+    val licenseExpiryDate: Long = System.currentTimeMillis() + (365L * 24 * 3600 * 1000),
+    val cpdPoints: Int = 30, // Continuing Professional Development Credits (e.g. 30/30)
+    val insurancePolicyNo: String = "INS-ETH-PI-9902", // Professional Indemnity Insurance
+    val internationalCertifications: String = "FIDIC Module 1, ISO 45001 HSE", // FIDIC, ISO 45001, OSHA, PMP
+    val assignedProjectId: Int? = null,
+    val assignedProjectRole: String = "ዋና የሳይት ተቆጣጣሪ መሃንዲስ (Lead Resident Engineer)",
+    val attachedDocsJson: String = "[\"Degree_Certificate.pdf\", \"MUI_Practicing_License.pdf\", \"Insurance_Policy.pdf\"]",
+    val disciplinaryRecord: String = "ንጹህ የሙያ ስነ-ምግባር መዝገብ (Clean Record)",
+    val complianceRating: Float = 4.8f,
+    // Statutory Fields under Ethiopian Building Law No. 1356/2017 & Directives
+    val specialization: String = "መዋቅርና ሲቪል ምህንድስና (Civil & Structural)",
+    val authorizedBuildingCategories: String = "ምድብ ሀ፣ ለ፣ ሐ እና ሜጋ (Categories A, B, C & Mega)",
+    val digitalSignatureVerified: Boolean = true,
+    val insuranceExpiryDate: Long = System.currentTimeMillis() + (365L * 24 * 3600 * 1000),
+    val law1356ComplianceStatus: String = "ተገዢ (COMPLIANT)",
+    val issueDate: Long = System.currentTimeMillis() - (180L * 24 * 3600 * 1000)
+) {
+    val isCompliantWithLaw1356: Boolean
+        get() = (licenseStatus.contains("COMPLIANT", ignoreCase = true) || licenseStatus.contains("ተገዢ")) &&
+                cpdPoints >= 30 &&
+                licenseExpiryDate > System.currentTimeMillis()
+
+    val daysUntilExpiry: Long
+        get() = ((licenseExpiryDate - System.currentTimeMillis()) / (24 * 3600 * 1000L)).coerceAtLeast(0)
+
+    val isRenewalDue: Boolean
+        get() = (daysUntilExpiry in 1..60) || (cpdPoints in 20..29 && licenseExpiryDate > System.currentTimeMillis())
+
+    fun verifyDocumentation(now: Long = System.currentTimeMillis()): ProfessionalVerificationReport =
+        Law1356VerificationEngine.verifyProfessional(this, now)
+}
 
 @Entity(tableName = "projects")
 data class Project(
@@ -120,8 +165,26 @@ interface ConstructionDao {
     @Query("SELECT * FROM professionals WHERE role = :role ORDER BY name ASC")
     fun getProfessionalsByRole(role: String): Flow<List<Professional>>
 
+    @Query("SELECT * FROM professionals WHERE specialization LIKE '%' || :specialization || '%' OR fieldOfPractice LIKE '%' || :specialization || '%' ORDER BY name ASC")
+    fun getProfessionalsBySpecialization(specialization: String): Flow<List<Professional>>
+
+    @Query("SELECT * FROM professionals WHERE licenseStatus = :status ORDER BY name ASC")
+    fun getProfessionalsByLicenseStatus(status: String): Flow<List<Professional>>
+
+    @Query("SELECT * FROM professionals WHERE name LIKE '%' || :query || '%' OR licenseNumber LIKE '%' || :query || '%' OR specialization LIKE '%' || :query || '%' OR nationalId LIKE '%' || :query || '%' ORDER BY name ASC")
+    fun searchProfessionals(query: String): Flow<List<Professional>>
+
+    @Query("SELECT * FROM professionals WHERE id = :id")
+    fun getProfessionalById(id: Int): Flow<Professional?>
+
+    @Query("SELECT COUNT(*) FROM professionals WHERE licenseStatus LIKE '%COMPLIANT%' OR licenseStatus LIKE '%ተገዢ%'")
+    fun getCompliantProfessionalsCount(): Flow<Int>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertProfessional(professional: Professional)
+
+    @Update
+    suspend fun updateProfessional(professional: Professional)
 
     @Delete
     suspend fun deleteProfessional(professional: Professional)
@@ -173,7 +236,7 @@ interface ConstructionDao {
     suspend fun deleteRiskAssessment(assessment: RiskAssessment)
 }
 
-@Database(entities = [Artisan::class, Professional::class, Project::class, Warning::class, DailyProgress::class, RiskAssessment::class], version = 7, exportSchema = false)
+@Database(entities = [Artisan::class, Professional::class, Project::class, Warning::class, DailyProgress::class, RiskAssessment::class], version = 9, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun constructionDao(): ConstructionDao
 }
@@ -185,15 +248,20 @@ class ConstructionRepository(private val dao: ConstructionDao) {
     val allWarnings: Flow<List<Warning>> = dao.getAllWarnings()
     val allDailyProgress: Flow<List<DailyProgress>> = dao.getAllDailyProgress()
     val allRiskAssessments: Flow<List<RiskAssessment>> = dao.getAllRiskAssessments()
+    val compliantProfessionalsCount: Flow<Int> = dao.getCompliantProfessionalsCount()
 
     fun getDailyProgressForProject(projectId: Int) = dao.getDailyProgressForProject(projectId)
     fun getProfessionalsByRole(role: String) = dao.getProfessionalsByRole(role)
-    fun getRiskAssessmentsForProject(projectId: Int) = dao.getRiskAssessmentsForProject(projectId)
+    fun getProfessionalsBySpecialization(specialization: String) = dao.getProfessionalsBySpecialization(specialization)
+    fun getProfessionalsByLicenseStatus(status: String) = dao.getProfessionalsByLicenseStatus(status)
+    fun searchProfessionals(query: String) = dao.searchProfessionals(query)
+    fun getProfessionalById(id: Int) = dao.getProfessionalById(id)
 
     suspend fun insertArtisan(artisan: Artisan) = dao.insertArtisan(artisan)
     suspend fun deleteArtisan(artisan: Artisan) = dao.deleteArtisan(artisan)
 
     suspend fun insertProfessional(professional: Professional) = dao.insertProfessional(professional)
+    suspend fun updateProfessional(professional: Professional) = dao.updateProfessional(professional)
     suspend fun deleteProfessional(professional: Professional) = dao.deleteProfessional(professional)
 
     suspend fun insertProject(project: Project) = dao.insertProject(project)

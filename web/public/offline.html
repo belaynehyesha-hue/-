@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="am">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ከመስመር ውጭ (Offline) | የቲሊሊ ከተማ ኮንስትራክሽን መድረክ</title>
+  <style>
+    body {
+      background-color: #0b0f17;
+      color: #e2e8f0;
+      font-family: system-ui, -apple-system, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 24px;
+      text-align: center;
+    }
+    .card {
+      background: #17202e;
+      border: 1px solid #323c52;
+      border-radius: 16px;
+      padding: 32px 24px;
+      max-width: 480px;
+      width: 100%;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    }
+    .icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+    h1 {
+      font-size: 22px;
+      margin: 0 0 12px 0;
+      color: #FFDE00;
+    }
+    p {
+      color: #94a3b8;
+      font-size: 14px;
+      line-height: 1.6;
+      margin: 0 0 24px 0;
+    }
+    .btn {
+      display: inline-block;
+      background: #007A33;
+      color: #ffffff;
+      padding: 12px 24px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .btn:hover {
+      background: #00963e;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="icon">📡⚠️</div>
+    <h1>የበይነ-መረብ ግንኙነት ተቋርጧል (Offline)</h1>
+    <p>
+      የቲሊሊ ከተማ ኮንስትራክሽን ዲጂታል መድረክ አሁን ከመስመር ውጭ (Offline) ሁነታ ላይ ይገኛል። የቀደምት መረጃዎችንና የተቀመጡ ሰነዶችን ከመሳሪያዎ መመልከት ይችላሉ።
+    </p>
+    <button class="btn" onclick="window.location.reload()">እንደገና ይሞክሩ (Retry)</button>
+  </div>
+</body>
+</html>

@@ -37,11 +37,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.data.Artisan
-import com.example.data.Professional
-import com.example.data.Project
-import com.example.data.Warning
-import com.example.data.RiskAssessment
+import com.example.data.*
 import com.example.ui.viewmodel.ConstructionViewModel
 import com.example.ui.viewmodel.GovernmentRegulation
 import kotlinx.coroutines.delay
@@ -56,6 +52,7 @@ val SteelGray = Color(0xFF2B2D42)
 val BackgroundSlate = Color(0xFF1E2022)
 val GoldAccent = Color(0xFFE9C46A)
 val CardBackground = Color(0xFF242629)
+val SafetyOrange = Color(0xFFE76F51)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -82,6 +79,10 @@ fun MainAppScreen(
     var showWarningDialog by remember { mutableStateOf(false) }
     var selectedProjectForDetails by remember { mutableStateOf<Project?>(null) }
     var showShareInstallDialog by remember { mutableStateOf(false) }
+    var showInstitutionDialog by remember { mutableStateOf(false) }
+    var selectedProfForDossier by remember { mutableStateOf<Professional?>(null) }
+
+    val institutionProfile by viewModel.institutionProfile.collectAsState()
 
     // Scanner simulated state
     var showScannerView by remember { mutableStateOf(false) }
@@ -96,58 +97,126 @@ fun MainAppScreen(
         Scaffold(
             modifier = Modifier.fillMaxSize(),
         topBar = {
-            TopAppBar(
-                title = {
-                    Column {
-                        Text(
-                            text = "የቲሊሊ ከተማ ኮንስትራክሽን ጽሕፈት ቤት",
-                            style = MaterialTheme.typography.titleMedium.copy(
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White
+            Column {
+                TopAppBar(
+                    title = {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.clickable { showInstitutionDialog = true }
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(38.dp)
+                                    .background(
+                                        Brush.linearGradient(listOf(AmharicGreen, ConstructionTeal)),
+                                        CircleShape
+                                    )
+                                    .border(1.5.dp, AmharicYellow, CircleShape),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.AccountBalance,
+                                    contentDescription = null,
+                                    tint = AmharicYellow,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Column {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(
+                                        text = institutionProfile.name,
+                                        style = MaterialTheme.typography.titleMedium.copy(
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color.White
+                                        ),
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Icon(Icons.Default.Tune, contentDescription = "የተቋም መለያ ቀይር", tint = AmharicYellow, modifier = Modifier.size(13.dp))
+                                }
+                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(6.dp)
+                                            .background(Color(0xFF4CAF50), CircleShape)
+                                    )
+                                    Text(
+                                        text = "${institutionProfile.department} • ${institutionProfile.regionOrCity}",
+                                        style = MaterialTheme.typography.labelSmall.copy(
+                                            color = AmharicYellow,
+                                            fontWeight = FontWeight.SemiBold
+                                        ),
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                }
+                            }
+                        }
+                    },
+                    actions = {
+                        IconButton(onClick = {
+                            showInstitutionDialog = true
+                        }) {
+                            Icon(
+                                imageVector = Icons.Default.Tune,
+                                contentDescription = "የተቋም መለያ ማስተካከያ",
+                                tint = AmharicYellow
                             )
-                        )
-                        Text(
-                            text = "ግንባታ ክትትልና ቁጥጥር ቡድን",
-                            style = MaterialTheme.typography.labelSmall.copy(
-                                color = AmharicYellow,
-                                fontWeight = FontWeight.SemiBold
+                        }
+                        IconButton(onClick = {
+                            showQrScanner = true
+                        }) {
+                            Icon(
+                                imageVector = Icons.Default.QrCodeScanner,
+                                contentDescription = "የግንባታ QR መለያ መፈለጊያ (ስካነር)",
+                                tint = AmharicYellow
                             )
-                        )
-                    }
-                },
-                actions = {
-                    IconButton(onClick = {
-                        showQrScanner = true
-                    }) {
-                        Icon(
-                            imageVector = Icons.Default.QrCodeScanner,
-                            contentDescription = "የግንባታ QR መለያ መፈለጊያ (ስካነር)",
-                            tint = AmharicYellow
-                        )
-                    }
-                    IconButton(onClick = {
-                        showShareInstallDialog = true
-                    }) {
-                        Icon(
-                            imageVector = Icons.Default.Share,
-                            contentDescription = "መተግበሪያውን ጫን እና አጋራ",
-                            tint = AmharicYellow
-                        )
-                    }
-                    IconButton(onClick = {
-                        Toast.makeText(context, "ባለቤትነት፡ በላይነህ የሻለም (Civil Engineer)", Toast.LENGTH_LONG).show()
-                    }) {
-                        Icon(
-                            imageVector = Icons.Default.Info,
-                            contentDescription = "ስለ መድረኩ",
-                            tint = Color.White
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = SteelGray
+                        }
+                        IconButton(onClick = {
+                            viewModel.openOrShareOperationalManual(context)
+                        }) {
+                            Icon(
+                                imageVector = Icons.Default.MenuBook,
+                                contentDescription = "የሲስተም አሰራር መመሪያ (Operational Manual PDF)",
+                                tint = AmharicYellow
+                            )
+                        }
+                        IconButton(onClick = {
+                            showShareInstallDialog = true
+                        }) {
+                            Icon(
+                                imageVector = Icons.Default.Share,
+                                contentDescription = "መተግበሪያውን ጫን እና አጋራ",
+                                tint = AmharicYellow
+                            )
+                        }
+                        IconButton(onClick = {
+                            Toast.makeText(context, "ባለቤትነት፡ በላይነህ የሻለም (Civil Engineer & Tech Developer)", Toast.LENGTH_LONG).show()
+                        }) {
+                            Icon(
+                                imageVector = Icons.Default.Info,
+                                contentDescription = "ስለ መድረኩ",
+                                tint = Color.White
+                            )
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = SteelGray
+                    )
                 )
-            )
+                // Ethiopian National Tri-Color Accent Micro Ribbon
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(3.dp)
+                ) {
+                    Box(modifier = Modifier.weight(1f).fillMaxHeight().background(AmharicGreen))
+                    Box(modifier = Modifier.weight(1f).fillMaxHeight().background(AmharicYellow))
+                    Box(modifier = Modifier.weight(1f).fillMaxHeight().background(AmharicRed))
+                }
+            }
         },
         bottomBar = {
             if (!isWideScreen) {
@@ -226,6 +295,19 @@ fun MainAppScreen(
                         onClick = { currentTab = 5 },
                         icon = { Icon(Icons.Default.Warning, contentDescription = "ቁጥጥርና ሪፖርት") },
                         label = { Text("ሪፖርት", fontSize = 9.sp) },
+                        colors = NavigationBarItemDefaults.colors(
+                            selectedIconColor = AmharicYellow,
+                            selectedTextColor = AmharicYellow,
+                            unselectedIconColor = Color.LightGray,
+                            unselectedTextColor = Color.LightGray,
+                            indicatorColor = SteelGray.copy(alpha = 0.5f)
+                        )
+                    )
+                    NavigationBarItem(
+                        selected = currentTab == 9,
+                        onClick = { currentTab = 9 },
+                        icon = { Icon(Icons.Default.Policy, contentDescription = "የሕግ ኦዲት") },
+                        label = { Text("ኦዲት", fontSize = 9.sp) },
                         colors = NavigationBarItemDefaults.colors(
                             selectedIconColor = AmharicYellow,
                             selectedTextColor = AmharicYellow,
@@ -373,6 +455,18 @@ fun MainAppScreen(
                             unselectedTextColor = Color.LightGray
                         )
                     )
+                    NavigationRailItem(
+                        selected = currentTab == 9,
+                        onClick = { currentTab = 9 },
+                        icon = { Icon(Icons.Default.Policy, contentDescription = "የሕግ ኦዲት") },
+                        label = { Text("የሕግ ኦዲት", fontSize = 10.sp) },
+                        colors = NavigationRailItemDefaults.colors(
+                            selectedIconColor = AmharicYellow,
+                            selectedTextColor = AmharicYellow,
+                            unselectedIconColor = Color.LightGray,
+                            unselectedTextColor = Color.LightGray
+                        )
+                    )
                     Spacer(modifier = Modifier.weight(1f))
                 }
             }
@@ -389,6 +483,8 @@ fun MainAppScreen(
                         artisans = artisans,
                         professionals = professionals,
                         warnings = warnings,
+                        institutionProfile = institutionProfile,
+                        onOpenInstitutionDialog = { showInstitutionDialog = true },
                         onAddProject = { showAddProjectDialog = true },
                         onSendWarning = { showWarningDialog = true },
                         onNavigate = { currentTab = it },
@@ -421,10 +517,14 @@ fun MainAppScreen(
                     )
                     3 -> ProfessionalsScreen(
                         professionals = professionals,
+                        projects = projects,
+                        institutionProfile = institutionProfile,
                         activeRegulation = activeRegulation,
                         onAddProfClick = { showAddProfDialog = true },
                         onDeleteProf = { viewModel.deleteProfessional(it) },
-                        onUpdateProf = { viewModel.updateProfessional(it) }
+                        onUpdateProf = { viewModel.updateProfessional(it) },
+                        onViewDossier = { selectedProfForDossier = it },
+                        onNavigateToAudit = { currentTab = 9 }
                     )
                     4 -> EngineeringIntegrationsScreen(
                         projects = projects,
@@ -448,6 +548,10 @@ fun MainAppScreen(
                     8 -> RiskAssessmentScreen(
                         projects = projects,
                         viewModel = viewModel
+                    )
+                    9 -> RegulatoryReportScreen(
+                        viewModel = viewModel,
+                        onConfigureInstitution = { showInstitutionDialog = true }
                     )
                 }
             }
@@ -519,14 +623,47 @@ fun MainAppScreen(
         )
     }
 
-    // Dialog: Add Professional
+    // Dialog: Add Professional (Comprehensive with Ethiopian & International Compliance)
     if (showAddProfDialog) {
-        AddProfessionalDialog(
+        AddProfessionalComprehensiveDialog(
+            projects = projects,
+            institutionProfile = institutionProfile,
             onDismiss = { showAddProfDialog = false },
-            onConfirm = { name, phone, role, grade, license ->
-                viewModel.addProfessional(name, phone, role, grade, license)
+            onSave = { prof ->
+                viewModel.addProfessionalComprehensive(prof)
                 showAddProfDialog = false
-                Toast.makeText(context, "ባለሙያው በስኬት ተመዝግቧል!", Toast.LENGTH_SHORT).show()
+            }
+        )
+    }
+
+    // Dialog: Professional Dossier Management & Credential Badge
+    if (selectedProfForDossier != null) {
+        ProfessionalDossierDetailDialog(
+            professional = selectedProfForDossier!!,
+            institutionProfile = institutionProfile,
+            onDismiss = { selectedProfForDossier = null },
+            onUpdate = { updated ->
+                viewModel.updateProfessional(updated)
+                selectedProfForDossier = updated
+            },
+            onDelete = {
+                viewModel.deleteProfessional(selectedProfForDossier!!)
+                selectedProfForDossier = null
+            },
+            onResolveFlag = { prof, flagType, value ->
+                viewModel.resolveFlag(prof, flagType, value)
+            }
+        )
+    }
+
+    // Dialog: Universal Institution Branding & Settings
+    if (showInstitutionDialog) {
+        InstitutionSettingsDialog(
+            currentProfile = institutionProfile,
+            onDismiss = { showInstitutionDialog = false },
+            onSave = { updated ->
+                viewModel.updateInstitutionProfile(updated)
+                showInstitutionDialog = false
             }
         )
     }
@@ -562,7 +699,19 @@ fun MainAppScreen(
     if (showShareInstallDialog) {
         ShareInstallDialog(
             onDismiss = { showShareInstallDialog = false },
-            context = context
+            context = context,
+            onDownloadManualPdf = { viewModel.openOrShareOperationalManual(context) },
+            onDownloadKotlinToApkPdf = { viewModel.openOrShareKotlinToApkPdf(context) }
+        )
+    }
+
+    // Interactive Report Sharing Confirmation & Progress Dialog (WhatsApp, Telegram, Email...)
+    val shareReportState by viewModel.shareReportState.collectAsState()
+    shareReportState?.let { activeState ->
+        ReportShareConfirmationDialog(
+            state = activeState,
+            onDismiss = { viewModel.dismissShareReportDialog() },
+            onConfirmShare = { viewModel.confirmAndExecuteShare(context) }
         )
     }
 }
@@ -574,6 +723,8 @@ fun DashboardScreen(
     artisans: List<Artisan>,
     professionals: List<Professional>,
     warnings: List<Warning>,
+    institutionProfile: InstitutionProfile = InstitutionProfile.DEFAULT,
+    onOpenInstitutionDialog: () -> Unit = {},
     onAddProject: () -> Unit,
     onSendWarning: () -> Unit,
     onNavigate: (Int) -> Unit,
@@ -583,6 +734,9 @@ fun DashboardScreen(
     onShareAppClick: () -> Unit = {},
     viewModel: ConstructionViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
 ) {
+    var selectedUserRole by remember { mutableStateOf("ሁሉም") }
+    val context = LocalContext.current
+
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -596,62 +750,587 @@ fun DashboardScreen(
                     .fillMaxWidth()
                     .testTag("dashboard_hero_card"),
                 colors = CardDefaults.cardColors(containerColor = SteelGray),
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-                shape = RoundedCornerShape(16.dp)
+                elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
+                shape = RoundedCornerShape(18.dp),
+                border = BorderStroke(1.dp, Brush.horizontalGradient(listOf(AmharicGreen.copy(alpha = 0.5f), AmharicYellow.copy(alpha = 0.6f), ConstructionTeal.copy(alpha = 0.5f))))
             ) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(
                             Brush.verticalGradient(
-                                colors = listOf(SteelGray, BackgroundSlate)
+                                colors = listOf(Color(0xFF262B34), Color(0xFF1B1E24), BackgroundSlate)
                             )
                         )
-                        .padding(20.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Box(
+                    // Ethiopian National Tri-Color Accent Micro Ribbon
+                    Row(
                         modifier = Modifier
-                            .size(60.dp)
-                            .background(AmharicGreen, CircleShape),
-                        contentAlignment = Alignment.Center
+                            .fillMaxWidth()
+                            .height(3.5.dp)
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.LocationCity,
-                            contentDescription = "አርማ",
-                            tint = AmharicYellow,
-                            modifier = Modifier.size(36.dp)
-                        )
+                        Box(modifier = Modifier.weight(1f).fillMaxHeight().background(AmharicGreen))
+                        Box(modifier = Modifier.weight(1f).fillMaxHeight().background(AmharicYellow))
+                        Box(modifier = Modifier.weight(1f).fillMaxHeight().background(AmharicRed))
                     }
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Text(
-                        text = "የቲሊሊ ከተማ አስተዳደር",
-                        style = MaterialTheme.typography.titleMedium.copy(
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
-                        )
-                    )
-                    Text(
-                        text = "ግንባታ ክትትልና ቁጥጥር ቡድን ዲጂታል መድረክ",
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            color = Color.LightGray,
+
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(18.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        // Regional Insignia Crest
+                        Box(
+                            modifier = Modifier
+                                .size(64.dp)
+                                .background(
+                                    Brush.radialGradient(listOf(ConstructionTeal.copy(alpha = 0.7f), AmharicGreen.copy(alpha = 0.85f))),
+                                    CircleShape
+                                )
+                                .border(2.dp, AmharicYellow, CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.AccountBalance,
+                                contentDescription = "አርማ",
+                                tint = AmharicYellow,
+                                modifier = Modifier.size(34.dp)
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(10.dp))
+
+                        // Subtitle
+                        Text(
+                            text = "የአማራ ብሔራዊ ክልላዊ መንግሥት",
+                            style = MaterialTheme.typography.labelMedium.copy(
+                                color = GoldAccent,
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 0.8.sp
+                            ),
                             textAlign = TextAlign.Center
                         )
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Surface(
-                        color = AmharicRed.copy(alpha = 0.2f),
-                        shape = RoundedCornerShape(8.dp),
-                        border = BorderStroke(1.dp, AmharicYellow.copy(alpha = 0.5f))
-                    ) {
+
                         Text(
-                            text = "ባለቤትነት፡ በላይነህ የሻለም (Civil Engineer)",
-                            style = MaterialTheme.typography.labelSmall.copy(
-                                color = AmharicYellow,
-                                fontWeight = FontWeight.Bold
+                            text = institutionProfile.name,
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontWeight = FontWeight.ExtraBold,
+                                color = Color.White,
+                                fontSize = 17.sp
                             ),
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                            textAlign = TextAlign.Center
                         )
+
+                        Text(
+                            text = "${institutionProfile.department} • ${institutionProfile.regionOrCity}",
+                            style = MaterialTheme.typography.bodySmall.copy(
+                                color = Color.LightGray,
+                                textAlign = TextAlign.Center
+                            )
+                        )
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        // Live status pill
+                        Surface(
+                            color = Color(0xFF1B3B26),
+                            shape = RoundedCornerShape(16.dp),
+                            border = BorderStroke(1.dp, AmharicGreen.copy(alpha = 0.7f))
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(7.dp)
+                                        .background(Color(0xFF4CAF50), CircleShape)
+                                )
+                                Text(
+                                    text = "ይፋዊ ዲጂታል የቁጥጥር ሥርዓት • ንቁ (Live Portal)",
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = Color.White
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(14.dp))
+
+                        // Executive Quick-Metric Strip
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(Color.Black.copy(alpha = 0.35f))
+                                .border(0.8.dp, Color.White.copy(alpha = 0.12f), RoundedCornerShape(12.dp))
+                                .padding(vertical = 10.dp, horizontal = 6.dp),
+                            horizontalArrangement = Arrangement.SpaceEvenly,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text("${projects.size}", color = AmharicYellow, fontWeight = FontWeight.ExtraBold, fontSize = 16.sp)
+                                Text("ግንባታዎች", color = Color.LightGray, fontSize = 10.sp)
+                            }
+                            Box(modifier = Modifier.width(1.dp).height(22.dp).background(Color.White.copy(alpha = 0.15f)))
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text("${professionals.size}", color = ConstructionTeal, fontWeight = FontWeight.ExtraBold, fontSize = 16.sp)
+                                Text("መሃንዲሶች", color = Color.LightGray, fontSize = 10.sp)
+                            }
+                            Box(modifier = Modifier.width(1.dp).height(22.dp).background(Color.White.copy(alpha = 0.15f)))
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text("${artisans.size}", color = AmharicGreen, fontWeight = FontWeight.ExtraBold, fontSize = 16.sp)
+                                Text("ባለሙያዎች", color = Color.LightGray, fontSize = 10.sp)
+                            }
+                            Box(modifier = Modifier.width(1.dp).height(22.dp).background(Color.White.copy(alpha = 0.15f)))
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text("${warnings.size}", color = if (warnings.isNotEmpty()) AmharicRed else Color.LightGray, fontWeight = FontWeight.ExtraBold, fontSize = 16.sp)
+                                Text("ማሳሰቢያዎች", color = Color.LightGray, fontSize = 10.sp)
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        // Active Regional Institution Switcher Button
+                        Surface(
+                            color = AmharicYellow.copy(alpha = 0.14f),
+                            shape = RoundedCornerShape(8.dp),
+                            border = BorderStroke(1.dp, AmharicYellow.copy(alpha = 0.55f)),
+                            modifier = Modifier.clickable { onOpenInstitutionDialog() }
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 7.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Tune,
+                                    contentDescription = null,
+                                    tint = AmharicYellow,
+                                    modifier = Modifier.size(14.dp)
+                                )
+                                Text(
+                                    text = "የተቋም መረጃ ቋት ቀይር / አዲስ ክፈት ⚙️",
+                                    style = MaterialTheme.typography.labelSmall.copy(
+                                        color = AmharicYellow,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Unified Digital Manuals & Installation Hub (ቀዳሚ የማውረጃና የተከላ ማዕከል)
+        item {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = CardBackground),
+                shape = RoundedCornerShape(16.dp),
+                border = BorderStroke(1.dp, ConstructionTeal.copy(alpha = 0.5f))
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(14.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    // Header
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(32.dp)
+                                .background(ConstructionTeal.copy(alpha = 0.35f), CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(Icons.Default.CloudDownload, contentDescription = null, tint = AmharicYellow, modifier = Modifier.size(18.dp))
+                        }
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "📚 የዲጂታል መመሪያዎችና የተከላ ማዕከል (Download Hub)",
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                            Text(
+                                text = "ይፋዊ የሲስተም አሰራር ሰነዶች፣ የኮትሊን ማኑዋል እና ያለ APK በስልክ መጫኛ",
+                                fontSize = 10.sp,
+                                color = Color.LightGray
+                            )
+                        }
+                    }
+
+                    // 2x2 Grid of Actions
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        // Tile 1: Install PWA
+                        Surface(
+                            modifier = Modifier
+                                .weight(1f)
+                                .clickable { onShareAppClick() },
+                            color = ConstructionTeal.copy(alpha = 0.2f),
+                            shape = RoundedCornerShape(10.dp),
+                            border = BorderStroke(1.dp, ConstructionTeal.copy(alpha = 0.6f))
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(10.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Icon(Icons.Default.InstallMobile, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
+                                Column {
+                                    Text("ያለ APK በስልክ ጫን", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                                    Text("PWA Web App", fontSize = 9.sp, color = AmharicYellow)
+                                }
+                            }
+                        }
+
+                        // Tile 2: Share Link
+                        Surface(
+                            modifier = Modifier
+                                .weight(1f)
+                                .clickable { onShareAppClick() },
+                            color = SteelGray.copy(alpha = 0.6f),
+                            shape = RoundedCornerShape(10.dp),
+                            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.2f))
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(10.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Icon(Icons.Default.Share, contentDescription = null, tint = AmharicYellow, modifier = Modifier.size(20.dp))
+                                Column {
+                                    Text("ሊንክ አጋራ", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                                    Text("ለሳይት/ለቢሮ መላኪያ", fontSize = 9.sp, color = Color.LightGray)
+                                }
+                            }
+                        }
+                    }
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        // Tile 3: Operational Manual PDF
+                        Surface(
+                            modifier = Modifier
+                                .weight(1f)
+                                .clickable { viewModel.openOrShareOperationalManual(context) },
+                            color = AmharicGreen.copy(alpha = 0.18f),
+                            shape = RoundedCornerShape(10.dp),
+                            border = BorderStroke(1.dp, AmharicGreen.copy(alpha = 0.6f))
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(10.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Icon(Icons.Default.MenuBook, contentDescription = null, tint = AmharicGreen, modifier = Modifier.size(20.dp))
+                                Column {
+                                    Text("የተጠቃሚዎች መመሪያ", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                                    Text("PDF SOP • በነፃ አውርድ", fontSize = 9.sp, color = AmharicGreen)
+                                }
+                            }
+                        }
+
+                        // Tile 4: Kotlin to APK PDF
+                        Surface(
+                            modifier = Modifier
+                                .weight(1f)
+                                .clickable { viewModel.openOrShareKotlinToApkPdf(context) },
+                            color = AmharicYellow.copy(alpha = 0.15f),
+                            shape = RoundedCornerShape(10.dp),
+                            border = BorderStroke(1.dp, AmharicYellow.copy(alpha = 0.6f))
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(10.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Icon(Icons.Default.Smartphone, contentDescription = null, tint = AmharicYellow, modifier = Modifier.size(20.dp))
+                                Column {
+                                    Text("ከዜሮ እስከ APK", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                                    Text("Kotlin PDF • በነፃ አውርድ", fontSize = 9.sp, color = AmharicYellow)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Role Persona Selector Bar (የስራ መስክ ፈጣን ማጣሪያ)
+        item {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "ለስራ መስክዎ የተበጀ ፈጣን እይታ (Select Role View):",
+                        style = MaterialTheme.typography.titleSmall.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = AmharicYellow
+                        )
+                    )
+                    if (selectedUserRole != "ሁሉም") {
+                        Text(
+                            text = "ሁሉንም አሳይ (Reset)",
+                            fontSize = 11.sp,
+                            color = Color.LightGray,
+                            modifier = Modifier.clickable { selectedUserRole = "ሁሉም" }
+                        )
+                    }
+                }
+                val roles = listOf(
+                    "ሁሉም",
+                    "ምህንድስና ባለሙያ",
+                    "አማካሪ",
+                    "ተቆጣጣሪ",
+                    "ኮንትራክተር",
+                    "የልምድ ባለሙያ"
+                )
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState())
+                ) {
+                    roles.forEach { role ->
+                        val isSelected = selectedUserRole == role
+                        FilterChip(
+                            selected = isSelected,
+                            onClick = { selectedUserRole = role },
+                            label = {
+                                Text(
+                                    text = when(role) {
+                                        "ሁሉም" -> "🌐 ሁሉም (All)"
+                                        "ምህንድስና ባለሙያ" -> "📐 ምህንድስና ባለሙያ"
+                                        "አማካሪ" -> "🏛️ አማካሪ"
+                                        "ተቆጣጣሪ" -> "🛡️ ተቆጣጣሪ"
+                                        "ኮንትራክተር" -> "🏗️ ኮንትራክተር"
+                                        "የልምድ ባለሙያ" -> "🔨 የልምድ ባለሙያ"
+                                        else -> role
+                                    },
+                                    fontSize = 11.sp,
+                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                                )
+                            },
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = AmharicYellow,
+                                selectedLabelColor = Color.Black,
+                                containerColor = Color.White.copy(alpha = 0.08f),
+                                labelColor = Color.White
+                            )
+                        )
+                    }
+                }
+            }
+        }
+
+        // Dedicated Role-Focused Hub Panel (Displayed when a specific role is selected)
+        if (selectedUserRole != "ሁሉም") {
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = CardBackground),
+                    shape = RoundedCornerShape(14.dp),
+                    border = BorderStroke(
+                        1.5.dp,
+                        when (selectedUserRole) {
+                            "ምህንድስና ባለሙያ" -> ConstructionTeal
+                            "አማካሪ" -> GoldAccent
+                            "ተቆጣጣሪ" -> AmharicRed
+                            "ኮንትራክተር" -> SafetyOrange
+                            "የልምድ ባለሙያ" -> AmharicGreen
+                            else -> AmharicYellow
+                        }
+                    )
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(
+                                imageVector = when (selectedUserRole) {
+                                    "ምህንድስና ባለሙያ" -> Icons.Default.Engineering
+                                    "አማካሪ" -> Icons.Default.Apartment
+                                    "ተቆጣጣሪ" -> Icons.Default.Shield
+                                    "ኮንትራክተር" -> Icons.Default.Construction
+                                    "የልምድ ባለሙያ" -> Icons.Default.Handyman
+                                    else -> Icons.Default.Person
+                                },
+                                contentDescription = null,
+                                tint = AmharicYellow,
+                                modifier = Modifier.size(24.dp)
+                            )
+                            Text(
+                                text = when (selectedUserRole) {
+                                    "ምህንድስና ባለሙያ" -> "የምህንድስና ባለሙያዎች የብቃትና ፈቃድ ቁጥጥር ማዕከል"
+                                    "አማካሪ" -> "የአማካሪዎች የዲዛይንና ሳይት ቁጥጥር ዳሽቦርድ"
+                                    "ተቆጣጣሪ" -> "የአማራ ክልል ኮንስትራክሽን ባለስልጣን የቁጥጥርና ኦዲት ፖርታል"
+                                    "ኮንትራክተር" -> "የተቋራጮች የሳይትና ግብዓት አስተዳደር ማዕከል"
+                                    "የልምድ ባለሙያ" -> "የልምድ ሰራተኞችና የሙያ ብቃት (CoC) ማህደር"
+                                    else -> ""
+                                },
+                                style = MaterialTheme.typography.bodyLarge.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White
+                                )
+                            )
+                        }
+
+                        Text(
+                            text = when (selectedUserRole) {
+                                "ምህንድስና ባለሙያ" -> "በአዋጅ ቁጥር 1356/2017 መሠረት የሙያ ፈቃድ እድሳት፣ የCPD ነጥቦች (ዒላማ 30 ነጥብ) እና የዲጂታል ማህተም ተገዢነትን ብቻ ማየትና መከታተል የሚያስችል የተለየ እይታ።"
+                                "አማካሪ" -> "የህንፃ ዲዛይን ምርመራ፣ የEBCS እና ESEN ህጎች ተገዢነት፣ የኮንስትራክሽን ሳይት ቁጥጥር እና የውል አስተዳደር ማዕከል።"
+                                "ተቆጣጣሪ" -> "የሳይት ኢንስፔክሽን፣ የስራ ማቆም ትዕዛዞች፣ የህግ 1356 ተገዢነት ኦዲት እና የፈቃድ ማረጋገጫ የሚያከናውኑበት የባለስልጣኑ የቁጥጥር መስኮት።"
+                                "ኮንትራክተር" -> "የሳይት ግንባታ ሂደቶች፣ ዕለታዊ የስራ ሪፖርቶች፣ የደህንነት (HSE) መሳሪያዎች ቁጥጥርና የሰው ኃይል ምደባ ማስተዳደሪያ።"
+                                "የልምድ ባለሙያ" -> "የግንበኞች፣ አናጢዎች፣ ኤሌክትሪሻኖችና የቧንቧ ባለሙያዎች የደረጃ ፩ እስከ ፭ የብቃት ማረጋገጫ (CoC) እና የስራ ፈቃድ ማዕከል።"
+                                else -> ""
+                            },
+                            style = MaterialTheme.typography.bodySmall.copy(
+                                color = Color.LightGray,
+                                lineHeight = 16.sp
+                            )
+                        )
+
+                        HorizontalDivider(color = Color.Gray.copy(alpha = 0.3f))
+
+                        // Tailored Action Buttons
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            when (selectedUserRole) {
+                                "ምህንድስና ባለሙያ" -> {
+                                    Button(
+                                        onClick = onAddProfessionalClick,
+                                        colors = ButtonDefaults.buttonColors(containerColor = ConstructionTeal),
+                                        modifier = Modifier.weight(1f),
+                                        shape = RoundedCornerShape(8.dp)
+                                    ) {
+                                        Icon(Icons.Default.PersonAdd, contentDescription = null, modifier = Modifier.size(16.dp))
+                                        Spacer(modifier = Modifier.width(4.dp))
+                                        Text("አዲስ መሀንዲስ መዝግብ", fontSize = 10.sp, maxLines = 1)
+                                    }
+                                    Button(
+                                        onClick = { onNavigate(3) },
+                                        colors = ButtonDefaults.buttonColors(containerColor = SteelGray),
+                                        modifier = Modifier.weight(1f),
+                                        shape = RoundedCornerShape(8.dp)
+                                    ) {
+                                        Icon(Icons.Default.Badge, contentDescription = null, modifier = Modifier.size(16.dp))
+                                        Spacer(modifier = Modifier.width(4.dp))
+                                        Text("የባለሙያዎች ዝርዝር", fontSize = 10.sp, maxLines = 1)
+                                    }
+                                }
+                                "አማካሪ" -> {
+                                    Button(
+                                        onClick = { onNavigate(6) },
+                                        colors = ButtonDefaults.buttonColors(containerColor = GoldAccent),
+                                        modifier = Modifier.weight(1f),
+                                        shape = RoundedCornerShape(8.dp)
+                                    ) {
+                                        Icon(Icons.Default.Rule, contentDescription = null, tint = Color.Black, modifier = Modifier.size(16.dp))
+                                        Spacer(modifier = Modifier.width(4.dp))
+                                        Text("የዲዛይን ህጎች (EBCS)", fontSize = 10.sp, color = Color.Black, maxLines = 1)
+                                    }
+                                    Button(
+                                        onClick = { onNavigate(1) },
+                                        colors = ButtonDefaults.buttonColors(containerColor = SteelGray),
+                                        modifier = Modifier.weight(1f),
+                                        shape = RoundedCornerShape(8.dp)
+                                    ) {
+                                        Icon(Icons.Default.Apartment, contentDescription = null, modifier = Modifier.size(16.dp))
+                                        Spacer(modifier = Modifier.width(4.dp))
+                                        Text("የቁጥጥር ፕሮጀክቶች", fontSize = 10.sp, maxLines = 1)
+                                    }
+                                }
+                                "ተቆጣጣሪ" -> {
+                                    Button(
+                                        onClick = { onNavigate(7) },
+                                        colors = ButtonDefaults.buttonColors(containerColor = AmharicRed),
+                                        modifier = Modifier.weight(1f),
+                                        shape = RoundedCornerShape(8.dp)
+                                    ) {
+                                        Icon(Icons.Default.Assessment, contentDescription = null, modifier = Modifier.size(16.dp))
+                                        Spacer(modifier = Modifier.width(4.dp))
+                                        Text("የኦዲት ሪፖርት (PDF)", fontSize = 10.sp, maxLines = 1)
+                                    }
+                                    Button(
+                                        onClick = onSendWarning,
+                                        colors = ButtonDefaults.buttonColors(containerColor = SteelGray),
+                                        modifier = Modifier.weight(1f),
+                                        shape = RoundedCornerShape(8.dp)
+                                    ) {
+                                        Icon(Icons.Default.Warning, contentDescription = null, modifier = Modifier.size(16.dp))
+                                        Spacer(modifier = Modifier.width(4.dp))
+                                        Text("ማስጠንቀቂያ ላክ", fontSize = 10.sp, maxLines = 1)
+                                    }
+                                }
+                                "ኮንትራክተር" -> {
+                                    Button(
+                                        onClick = onAddProject,
+                                        colors = ButtonDefaults.buttonColors(containerColor = SafetyOrange),
+                                        modifier = Modifier.weight(1f),
+                                        shape = RoundedCornerShape(8.dp)
+                                    ) {
+                                        Icon(Icons.Default.AddBusiness, contentDescription = null, modifier = Modifier.size(16.dp))
+                                        Spacer(modifier = Modifier.width(4.dp))
+                                        Text("አዲስ ሳይት መዝግብ", fontSize = 10.sp, maxLines = 1)
+                                    }
+                                    Button(
+                                        onClick = { onNavigate(8) },
+                                        colors = ButtonDefaults.buttonColors(containerColor = SteelGray),
+                                        modifier = Modifier.weight(1f),
+                                        shape = RoundedCornerShape(8.dp)
+                                    ) {
+                                        Icon(Icons.Default.HealthAndSafety, contentDescription = null, modifier = Modifier.size(16.dp))
+                                        Spacer(modifier = Modifier.width(4.dp))
+                                        Text("የሳይት ደህንነት ፍተሻ", fontSize = 10.sp, maxLines = 1)
+                                    }
+                                }
+                                "የልምድ ባለሙያ" -> {
+                                    Button(
+                                        onClick = onAddArtisanClick,
+                                        colors = ButtonDefaults.buttonColors(containerColor = AmharicGreen),
+                                        modifier = Modifier.weight(1f),
+                                        shape = RoundedCornerShape(8.dp)
+                                    ) {
+                                        Icon(Icons.Default.Handyman, contentDescription = null, modifier = Modifier.size(16.dp))
+                                        Spacer(modifier = Modifier.width(4.dp))
+                                        Text("የልምድ ሰራተኛ መዝግብ", fontSize = 10.sp, maxLines = 1)
+                                    }
+                                    Button(
+                                        onClick = { onNavigate(2) },
+                                        colors = ButtonDefaults.buttonColors(containerColor = SteelGray),
+                                        modifier = Modifier.weight(1f),
+                                        shape = RoundedCornerShape(8.dp)
+                                    ) {
+                                        Icon(Icons.Default.Badge, contentDescription = null, modifier = Modifier.size(16.dp))
+                                        Spacer(modifier = Modifier.width(4.dp))
+                                        Text("የባለሙያዎች ማህደር", fontSize = 10.sp, maxLines = 1)
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -824,89 +1503,183 @@ fun DashboardScreen(
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(containerColor = CardBackground),
-                shape = RoundedCornerShape(12.dp)
+                shape = RoundedCornerShape(16.dp),
+                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f))
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        text = "ፈጣን ተግባራት (Quick Actions)",
-                        style = MaterialTheme.typography.bodyLarge.copy(
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
-                        )
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(28.dp)
+                                .background(AmharicYellow.copy(alpha = 0.2f), CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(Icons.Default.Bolt, contentDescription = null, tint = AmharicYellow, modifier = Modifier.size(16.dp))
+                        }
+                        Text(
+                            text = "ፈጣን ተግባራት (Quick Actions Matrix)",
+                            style = MaterialTheme.typography.titleSmall.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    // Row 1: Add Project & Send Warning
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
                         Button(
                             onClick = onAddProject,
                             colors = ButtonDefaults.buttonColors(containerColor = ConstructionTeal),
                             modifier = Modifier
                                 .weight(1f)
+                                .height(54.dp)
                                 .testTag("quick_add_project"),
-                            shape = RoundedCornerShape(8.dp)
+                            shape = RoundedCornerShape(12.dp)
                         ) {
-                            Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text("ግንባታ መዝግብ", fontSize = 11.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(20.dp))
+                                Column {
+                                    Text("ግንባታ መዝግብ", fontSize = 12.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+                                    Text("አዲስ ሳይት ምዝገባ", fontSize = 9.sp, color = Color.White.copy(alpha = 0.8f))
+                                }
+                            }
                         }
+
                         Button(
                             onClick = onSendWarning,
                             colors = ButtonDefaults.buttonColors(containerColor = AmharicRed),
                             modifier = Modifier
                                 .weight(1f)
+                                .height(54.dp)
                                 .testTag("quick_send_warning"),
-                            shape = RoundedCornerShape(8.dp)
+                            shape = RoundedCornerShape(12.dp)
                         ) {
-                            Icon(Icons.Default.Warning, contentDescription = null, modifier = Modifier.size(16.dp))
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text("ማስጠንቀቂያ ላክ", fontSize = 11.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Icon(Icons.Default.Warning, contentDescription = null, modifier = Modifier.size(20.dp))
+                                Column {
+                                    Text("ማስጠንቀቂያ ላክ", fontSize = 12.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+                                    Text("የቁጥጥር ማሳሰቢያ", fontSize = 9.sp, color = Color.White.copy(alpha = 0.8f))
+                                }
+                            }
                         }
                     }
+
                     Spacer(modifier = Modifier.height(10.dp))
-                    Button(
-                        onClick = { onNavigate(4) }, // Open Engineering Integrations (tab index 4)
-                        colors = ButtonDefaults.buttonColors(containerColor = GoldAccent),
-                        modifier = Modifier.fillMaxWidth().testTag("quick_engineering_hub"),
-                        shape = RoundedCornerShape(8.dp)
+
+                    // Row 2: Engineering Integrations & EBCS AI Check
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        Icon(Icons.Default.SettingsInputComponent, contentDescription = null, modifier = Modifier.size(16.dp), tint = SteelGray)
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text("የምህንድስና ሶፍትዌሮች ትስስር ማዕከል (CAD/BIM/GIS Sync)", fontSize = 11.sp, color = SteelGray, fontWeight = FontWeight.Bold)
+                        Button(
+                            onClick = { onNavigate(4) }, // Open Engineering Integrations (tab index 4)
+                            colors = ButtonDefaults.buttonColors(containerColor = SteelGray),
+                            border = BorderStroke(1.dp, GoldAccent.copy(alpha = 0.6f)),
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(54.dp)
+                                .testTag("quick_engineering_hub"),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Icon(Icons.Default.SettingsInputComponent, contentDescription = null, modifier = Modifier.size(18.dp), tint = GoldAccent)
+                                Column {
+                                    Text("CAD/BIM ትስስር", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color.White, maxLines = 1)
+                                    Text("ሶፍትዌር ማዕከል", fontSize = 9.sp, color = GoldAccent)
+                                }
+                            }
+                        }
+
+                        Button(
+                            onClick = { onNavigate(6) }, // Open EBCS & AI Screen (tab index 6)
+                            colors = ButtonDefaults.buttonColors(containerColor = SteelGray),
+                            border = BorderStroke(1.dp, AmharicGreen.copy(alpha = 0.7f)),
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(54.dp)
+                                .testTag("quick_ebcs_ai"),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Icon(Icons.Default.Gavel, contentDescription = null, modifier = Modifier.size(18.dp), tint = AmharicGreen)
+                                Column {
+                                    Text("EBCS & AI ቼክ", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color.White, maxLines = 1)
+                                    Text("የሕንፃ ኮድ ማረጋገጫ", fontSize = 9.sp, color = AmharicGreen)
+                                }
+                            }
+                        }
                     }
+
                     Spacer(modifier = Modifier.height(10.dp))
-                    Button(
-                        onClick = { onNavigate(6) }, // Open EBCS & AI Screen (tab index 6)
-                        colors = ButtonDefaults.buttonColors(containerColor = AmharicGreen),
-                        modifier = Modifier.fillMaxWidth().testTag("quick_ebcs_ai"),
-                        shape = RoundedCornerShape(8.dp)
+
+                    // Row 3: Daily Progress & Risk Assessment
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        Icon(Icons.Default.Gavel, contentDescription = null, modifier = Modifier.size(16.dp), tint = Color.White)
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text("ብሔራዊ የሕንፃ ኮድ መቆጣጠሪያና AI ሠነድ ማረጋገጫ (EBCS & AI)", fontSize = 11.sp, color = Color.White, fontWeight = FontWeight.Bold)
-                    }
-                    Spacer(modifier = Modifier.height(10.dp))
-                    Button(
-                        onClick = { onNavigate(7) }, // Open Daily Progress (tab index 7)
-                        colors = ButtonDefaults.buttonColors(containerColor = AmharicYellow),
-                        modifier = Modifier.fillMaxWidth().testTag("quick_daily_progress"),
-                        shape = RoundedCornerShape(8.dp)
-                    ) {
-                        Icon(Icons.Default.FactCheck, contentDescription = null, modifier = Modifier.size(16.dp), tint = SteelGray)
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text("ዕለታዊ የግንባታ መከታተያ እና ተገዢነት መቆጣጠሪያ (Daily Progress Logs)", fontSize = 11.sp, color = SteelGray, fontWeight = FontWeight.Bold)
-                    }
-                    Spacer(modifier = Modifier.height(10.dp))
-                    Button(
-                        onClick = { onNavigate(8) }, // Open Risk Assessment (tab index 8)
-                        colors = ButtonDefaults.buttonColors(containerColor = AmharicRed),
-                        modifier = Modifier.fillMaxWidth().testTag("quick_risk_assessment"),
-                        shape = RoundedCornerShape(8.dp)
-                    ) {
-                        Icon(Icons.Default.HealthAndSafety, contentDescription = null, modifier = Modifier.size(16.dp), tint = Color.White)
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text("የግንባታ ደህንነት አደጋዎች ፍተሻ እና መቆጣጠሪያ (Site Risk Assessment)", fontSize = 11.sp, color = Color.White, fontWeight = FontWeight.Bold)
+                        Button(
+                            onClick = { onNavigate(7) }, // Open Daily Progress (tab index 7)
+                            colors = ButtonDefaults.buttonColors(containerColor = SteelGray),
+                            border = BorderStroke(1.dp, AmharicYellow.copy(alpha = 0.6f)),
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(54.dp)
+                                .testTag("quick_daily_progress"),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Icon(Icons.Default.FactCheck, contentDescription = null, modifier = Modifier.size(18.dp), tint = AmharicYellow)
+                                Column {
+                                    Text("ዕለታዊ ሎግ", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color.White, maxLines = 1)
+                                    Text("የሳይት ክትትል", fontSize = 9.sp, color = AmharicYellow)
+                                }
+                            }
+                        }
+
+                        Button(
+                            onClick = { onNavigate(8) }, // Open Risk Assessment (tab index 8)
+                            colors = ButtonDefaults.buttonColors(containerColor = SteelGray),
+                            border = BorderStroke(1.dp, Color(0xFFFF6D00).copy(alpha = 0.7f)),
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(54.dp)
+                                .testTag("quick_risk_assessment"),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Icon(Icons.Default.HealthAndSafety, contentDescription = null, modifier = Modifier.size(18.dp), tint = Color(0xFFFF6D00))
+                                Column {
+                                    Text("የሳይት ደህንነት", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color.White, maxLines = 1)
+                                    Text("HSE አደጋ ፍተሻ", fontSize = 9.sp, color = Color(0xFFFF6D00))
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -949,6 +1722,23 @@ fun DashboardScreen(
                 WarningItem(warning = warning, onDelete = {})
             }
         }
+
+        // System Ownership micro-label strictly at bottom
+        item {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 24.dp, bottom = 28.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "ባለቤትነት፡ በላይነህ የሻለም (Civil Engineer)",
+                    fontSize = 8.sp,
+                    color = Color.Gray.copy(alpha = 0.45f),
+                    textAlign = TextAlign.Center
+                )
+            }
+        }
     }
 }
 
@@ -963,30 +1753,62 @@ fun StatCard(
 ) {
     Card(
         modifier = modifier
-            .height(100.dp)
+            .height(104.dp)
             .clickable(onClick = onClick),
         colors = CardDefaults.cardColors(containerColor = CardBackground),
-        shape = RoundedCornerShape(12.dp)
+        shape = RoundedCornerShape(14.dp),
+        border = BorderStroke(1.dp, color.copy(alpha = 0.35f))
     ) {
-        Row(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+                .background(
+                    Brush.linearGradient(
+                        colors = listOf(
+                            CardBackground,
+                            color.copy(alpha = 0.08f)
+                        )
+                    )
+                )
+                .padding(14.dp)
         ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(text = title, color = Color.Gray, fontSize = 11.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(text = value, color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Bold)
-            }
-            Box(
-                modifier = Modifier
-                    .size(44.dp)
-                    .background(color.copy(alpha = 0.2f), CircleShape),
-                contentAlignment = Alignment.Center
+            Row(
+                modifier = Modifier.fillMaxSize(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Icon(imageVector = icon, contentDescription = null, tint = color, modifier = Modifier.size(24.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = title,
+                        color = Color.LightGray,
+                        fontSize = 11.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = value,
+                        color = Color.White,
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.ExtraBold
+                    )
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = "ሙሉ ዝርዝር እይ ›",
+                        color = color,
+                        fontSize = 9.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+                Box(
+                    modifier = Modifier
+                        .size(44.dp)
+                        .background(color.copy(alpha = 0.18f), CircleShape)
+                        .border(1.dp, color.copy(alpha = 0.4f), CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(imageVector = icon, contentDescription = null, tint = color, modifier = Modifier.size(24.dp))
+                }
             }
         }
     }
@@ -2183,145 +3005,26 @@ fun ArtisanCard(
 @Composable
 fun ProfessionalsScreen(
     professionals: List<Professional>,
-    activeRegulation: GovernmentRegulation,
+    projects: List<Project> = emptyList(),
+    institutionProfile: InstitutionProfile = InstitutionProfile.DEFAULT,
+    activeRegulation: GovernmentRegulation? = null,
     onAddProfClick: () -> Unit,
     onDeleteProf: (Professional) -> Unit,
-    onUpdateProf: (Professional) -> Unit
+    onUpdateProf: (Professional) -> Unit,
+    onViewDossier: (Professional) -> Unit = {},
+    onNavigateToAudit: () -> Unit = {}
 ) {
-    var searchQuery by remember { mutableStateOf("") }
-    var selectedRole by remember { mutableStateOf("ሁሉም") }
-    var geezFilterLetter by remember { mutableStateOf("ሁሉም") }
-
-    val roles = listOf("ሁሉም", "የስራ ተቆጣጣሪ", "የኮንስትራክሽን አማካሪ", "የስራ ተቋራጭ")
-
-    val filteredProfs = professionals.filter { prof ->
-        val matchesRole = selectedRole == "ሁሉም" || prof.role == selectedRole
-        val matchesQuery = prof.name.contains(searchQuery, ignoreCase = true)
-        val matchesGeez = if (geezFilterLetter == "ሁሉም") {
-            true
-        } else {
-            val targetChar = geezFilterLetter.firstOrNull()
-            if (targetChar == null) true
-            else {
-                val family = getGeezFamily(targetChar)
-                prof.name.firstOrNull() in family
-            }
-        }
-        matchesRole && matchesQuery && matchesGeez
-    }
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = "የኮንስትራክሽን ባለሙያዎችና ተቋራጮች",
-                style = MaterialTheme.typography.titleMedium.copy(
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
-                )
-            )
-            Button(
-                onClick = onAddProfClick,
-                colors = ButtonDefaults.buttonColors(containerColor = ConstructionTeal),
-                shape = RoundedCornerShape(8.dp)
-            ) {
-                Icon(Icons.Default.Add, contentDescription = null)
-                Spacer(modifier = Modifier.width(4.dp))
-                Text("መዝግብ", fontSize = 11.sp)
-            }
-        }
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        OutlinedTextField(
-            value = searchQuery,
-            onValueChange = { searchQuery = it },
-            placeholder = { Text("በስም ፈልግ...", color = Color.Gray, fontSize = 13.sp) },
-            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = Color.LightGray) },
-            modifier = Modifier.fillMaxWidth(),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedTextColor = Color.White,
-                unfocusedTextColor = Color.White,
-                focusedBorderColor = AmharicYellow,
-                unfocusedBorderColor = Color.Gray,
-                focusedContainerColor = CardBackground,
-                unfocusedContainerColor = CardBackground
-            ),
-            shape = RoundedCornerShape(8.dp)
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        // Role Tab Selectors
-        ScrollableTabRow(
-            selectedTabIndex = roles.indexOf(selectedRole).coerceAtLeast(0),
-            containerColor = Color.Transparent,
-            edgePadding = 0.dp,
-            divider = {},
-            indicator = {}
-        ) {
-            roles.forEach { role ->
-                val isSelected = role == selectedRole
-                Tab(
-                    selected = isSelected,
-                    onClick = { selectedRole = role },
-                    text = {
-                        Text(
-                            text = role,
-                            color = if (isSelected) AmharicYellow else Color.Gray,
-                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                            fontSize = 11.sp
-                        )
-                    }
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        GeezAlphabetFilterBar(
-            selectedLetter = geezFilterLetter,
-            onLetterSelected = { geezFilterLetter = it }
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        if (filteredProfs.isEmpty()) {
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth(),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(Icons.Default.Group, contentDescription = null, modifier = Modifier.size(60.dp), tint = Color.Gray)
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Text("ምንም የተመዘገበ ባለሙያ አልተገኘም።", color = Color.Gray, fontSize = 14.sp)
-                }
-            }
-        } else {
-            LazyColumn(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                items(filteredProfs) { prof ->
-                    ProfessionalCard(
-                        prof = prof,
-                        activeRegulation = activeRegulation,
-                        onDelete = { onDeleteProf(prof) },
-                        onUpdate = onUpdateProf
-                    )
-                }
-            }
-        }
-    }
+    RegisteredProfessionalsManagementComponent(
+        professionals = professionals,
+        projects = projects,
+        institutionProfile = institutionProfile,
+        activeRegulation = activeRegulation,
+        onAddProfClick = onAddProfClick,
+        onDeleteProf = onDeleteProf,
+        onUpdateProf = onUpdateProf,
+        onViewDossier = onViewDossier,
+        onNavigateToAudit = onNavigateToAudit
+    )
 }
 
 @Composable
@@ -2329,17 +3032,23 @@ fun ProfessionalCard(
     prof: Professional,
     activeRegulation: GovernmentRegulation,
     onDelete: () -> Unit,
-    onUpdate: (Professional) -> Unit
+    onUpdate: (Professional) -> Unit,
+    onViewDossier: () -> Unit = {}
 ) {
     val context = LocalContext.current
     var showAccreditationDialog by remember { mutableStateOf(false) }
     var inputCode by remember { mutableStateOf("") }
     var codeError by remember { mutableStateOf(false) }
 
+    val isCompliant = prof.licenseStatus.contains("COMPLIANT", ignoreCase = true) || prof.licenseStatus.contains("ተገዢ")
+
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onViewDossier() },
         colors = CardDefaults.cardColors(containerColor = CardBackground),
-        shape = RoundedCornerShape(12.dp)
+        shape = RoundedCornerShape(12.dp),
+        border = BorderStroke(1.dp, if (isCompliant) AmharicGreen.copy(alpha = 0.3f) else SafetyOrange.copy(alpha = 0.5f))
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
@@ -2377,22 +3086,36 @@ fun ProfessionalCard(
                         )
                     }
                     Column {
-                        Text(text = prof.name, color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold)
-                        Text(text = prof.role, color = Color.LightGray, fontSize = 12.sp)
+                        Text(text = prof.name, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                        Text(text = "${prof.role} • ${prof.grade}", color = Color.LightGray, fontSize = 11.sp)
                         Spacer(modifier = Modifier.height(4.dp))
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                             Surface(
-                                color = if (prof.isAccredited) AmharicGreen.copy(alpha = 0.15f) else AmharicRed.copy(alpha = 0.15f),
-                                border = BorderStroke(1.dp, if (prof.isAccredited) AmharicGreen else AmharicRed),
+                                color = if (isCompliant) AmharicGreen.copy(alpha = 0.15f) else SafetyOrange.copy(alpha = 0.15f),
+                                border = BorderStroke(1.dp, if (isCompliant) AmharicGreen else SafetyOrange),
                                 shape = RoundedCornerShape(4.dp)
                             ) {
                                 Text(
-                                    text = if (prof.isAccredited) "🏅 እውቅና አለው" else "⚠️ እውቅና ማሻሻያ ያስፈልገዋል",
-                                    color = if (prof.isAccredited) AmharicGreen else AmharicRed,
-                                    fontSize = 10.sp,
+                                    text = prof.licenseStatus,
+                                    color = if (isCompliant) AmharicGreen else SafetyOrange,
+                                    fontSize = 9.sp,
                                     fontWeight = FontWeight.Bold,
                                     modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                                 )
+                            }
+                            if (prof.cpdPoints > 0) {
+                                Surface(
+                                    color = AmharicYellow.copy(alpha = 0.15f),
+                                    shape = RoundedCornerShape(4.dp)
+                                ) {
+                                    Text(
+                                        text = "CPD: ${prof.cpdPoints}/30",
+                                        color = AmharicYellow,
+                                        fontSize = 9.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                    )
+                                }
                             }
                         }
                     }
@@ -2403,9 +3126,9 @@ fun ProfessionalCard(
                 }
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(10.dp))
             HorizontalDivider(color = Color.Gray.copy(alpha = 0.2f))
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -2413,38 +3136,53 @@ fun ProfessionalCard(
             ) {
                 Column {
                     Text(text = "ስልክ ቁጥር", color = Color.Gray, fontSize = 11.sp)
-                    Text(text = prof.phone, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                    Text(text = prof.phone, color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                 }
                 Column(horizontalAlignment = Alignment.End) {
-                    Text(text = "ደረጃ & የፈቃድ ቁጥር", color = Color.Gray, fontSize = 11.sp)
-                    Text(text = "${prof.grade} | ${prof.licenseNumber}", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                    Text(text = "ፈቃድ ቁጥር", color = Color.Gray, fontSize = 11.sp)
+                    Text(text = prof.licenseNumber, color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                 }
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            if (prof.internationalCertifications.isNotBlank()) {
+                Spacer(modifier = Modifier.height(6.dp))
+                Text(
+                    text = "ዓለም አቀፍ እውቅና፡ ${prof.internationalCertifications}",
+                    fontSize = 9.sp,
+                    color = ConstructionTeal
+                )
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
             HorizontalDivider(color = Color.Gray.copy(alpha = 0.2f))
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Icon(Icons.Default.Verified, contentDescription = null, tint = Color.LightGray, modifier = Modifier.size(16.dp))
-                    Text(text = "ደረጃ፡ ${prof.grade}", color = Color.LightGray, fontSize = 12.sp)
+                OutlinedButton(
+                    onClick = onViewDossier,
+                    shape = RoundedCornerShape(6.dp),
+                    border = BorderStroke(1.dp, AmharicYellow),
+                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp)
+                ) {
+                    Icon(Icons.Default.FolderShared, contentDescription = null, tint = AmharicYellow, modifier = Modifier.size(14.dp))
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text("ሙሉ ማህደር (Dossier)", fontSize = 10.sp, color = AmharicYellow, fontWeight = FontWeight.Bold)
                 }
 
                 Button(
                     onClick = { showAccreditationDialog = true },
                     colors = ButtonDefaults.buttonColors(containerColor = AmharicGreen.copy(alpha = 0.15f)),
                     border = BorderStroke(1.dp, AmharicGreen),
-                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
                     shape = RoundedCornerShape(6.dp)
                 ) {
                     Icon(Icons.Default.Verified, contentDescription = null, modifier = Modifier.size(12.dp), tint = AmharicGreen)
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text("እውቅና አሻሽል", fontSize = 11.sp, color = AmharicGreen)
+                    Text("እውቅና አሻሽል", fontSize = 10.sp, color = AmharicGreen)
                 }
             }
         }
@@ -2775,15 +3513,34 @@ fun ReportsAndAlertsScreen(
             shape = RoundedCornerShape(12.dp)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Text(
-                    text = "ኦፊሴላዊ የከተማ ሪፖርቶች ማውረጃ (Export Center)",
-                    style = MaterialTheme.typography.bodyLarge.copy(
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "ኦፊሴላዊ የከተማ ሪፖርቶች ማውረጃና ማጋሪያ",
+                        style = MaterialTheme.typography.bodyLarge.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
                     )
-                )
+                    Surface(
+                        color = AmharicGreen.copy(alpha = 0.15f),
+                        shape = RoundedCornerShape(12.dp),
+                        border = BorderStroke(1.dp, AmharicGreen.copy(alpha = 0.4f))
+                    ) {
+                        Text(
+                            text = "WhatsApp • Telegram • Email",
+                            color = AmharicYellow,
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                        )
+                    }
+                }
                 Text(
-                    text = "የቲሊሊ ከተማ የግንባታ ፕሮጀክቶች፣ የልምድ ሰራተኞች እና የባለሙያዎች የተሟላ መዝገብ ማውጫ።",
+                    text = "የቲሊሊ ከተማ የግንባታ ፕሮጀክቶች፣ የልምድ ሰራተኞች እና የባለሙያዎች የተሟላ መዝገብ ማውጫ። የፋይል ቅርጸቱን አስቀድመው በማረጋገጥ በቀጥታ ያጋሩ።",
                     style = MaterialTheme.typography.labelMedium.copy(
                         color = Color.LightGray
                     ),
@@ -4229,7 +4986,9 @@ fun GeezAlphabetFilterBar(
 @Composable
 fun ShareInstallDialog(
     onDismiss: () -> Unit,
-    context: android.content.Context
+    context: android.content.Context,
+    onDownloadManualPdf: () -> Unit = {},
+    onDownloadKotlinToApkPdf: () -> Unit = {}
 ) {
     Dialog(onDismissRequest = onDismiss) {
         Card(
@@ -4263,7 +5022,7 @@ fun ShareInstallDialog(
                 }
 
                 Text(
-                    text = "መተግበሪያውን በቀጥታ ስልክ ላይ መጫኛ መመሪያ",
+                    text = "ያለምንም APK ቀጥታ በስልክና በኮምፒውተር የመጫኛ መመሪያ",
                     color = Color.White,
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp,
@@ -4271,11 +5030,53 @@ fun ShareInstallDialog(
                 )
 
                 Text(
-                    text = "ይህንን መተግበሪያ በስልክዎ ላይ በቀጥታ እንደማንኛውም app ለመጫን እና ለሌሎች መሃንዲሶች ለማጋራት የሚከተሉትን ቀላል ደረጃዎች ይከተሉ፡",
+                    text = "ይህንን ዘመናዊ መተግበሪያ ያለምንም APK ፋይል በቀጥታ በስልክዎ (Android/iOS) እና በኮምፒውተርዎ (PC/Laptop) ላይ እንደ መደበኛ መተግበሪያ አድርገው ለመጫን የሚከተሉትን ቀላል ደረጃዎች ይከተሉ፡",
                     color = Color.LightGray,
                     fontSize = 12.sp,
                     textAlign = TextAlign.Center
                 )
+
+                // Quick copy URL card
+                Surface(
+                    color = Color.Black.copy(alpha = 0.4f),
+                    shape = RoundedCornerShape(10.dp),
+                    border = BorderStroke(1.dp, AmharicYellow.copy(alpha = 0.5f)),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier.padding(10.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "የቀጥታ መክፈቻ የድረ-ገጽ ሊንክ (Web Link):",
+                                fontSize = 10.sp,
+                                color = AmharicYellow,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                text = "https://ais-pre-gkbshauubl4rx4uq45c3no-180667634259.europe-west1.run.app",
+                                fontSize = 10.sp,
+                                color = Color.White,
+                                maxLines = 1
+                            )
+                        }
+                        Button(
+                            onClick = {
+                                val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                                val clip = android.content.ClipData.newPlainText("App URL", "https://ais-pre-gkbshauubl4rx4uq45c3no-180667634259.europe-west1.run.app")
+                                clipboard.setPrimaryClip(clip)
+                                Toast.makeText(context, "የመተግበሪያው ቀጥታ ሊንክ ተቀድቷል! በብሮውዘር ይክፈቱት", Toast.LENGTH_SHORT).show()
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = AmharicYellow),
+                            shape = RoundedCornerShape(8.dp),
+                            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp)
+                        ) {
+                            Text("ቅዳ (Copy)", fontSize = 10.sp, color = Color.Black, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
 
                 HorizontalDivider(color = Color.Gray.copy(alpha = 0.3f))
 
@@ -4286,26 +5087,26 @@ fun ShareInstallDialog(
                 ) {
                     InstallStepRow(
                         stepNumber = "1",
-                        title = "APK ፋይል ማዘጋጀት",
-                        description = "ከላይኛው ቀኝ የቅንጅቶች (Settings) ምልክት በመጫን 'Generate APK' የሚለውን ይጫኑ። መድረኩ መተግበሪያውን ሰብስቦ የ .apk ፋይል ያዘጋጅልዎታል።"
+                        title = "በስልክ ላይ ያለምንም APK በቀጥታ ለመጫን (Smartphones)",
+                        description = "ሊንኩን በስልክዎ Chrome ወይም Safari ብሮውዘር ይክፈቱ። የብሮውዘሩን ሜኑ (⋮ ወይም የማጋሪያ ምልክት) በመጫን 'ወደ መነሻ ገጽ ጨምር / Add to Home screen' ወይም 'መተግበሪያውን ጫን / Install App' የሚለውን ይምረጡ። ምንም አይነት APK ፋይል ሳያወርዱ ልክ እንደ መደበኛ አፕሊኬሽን በስልክዎ ስክሪን ላይ ይቀመጣል!"
                     )
 
                     InstallStepRow(
                         stepNumber = "2",
-                        title = "ፋይሉን ማውረድ",
-                        description = "ግንባታው ሲጠናቀቅ የሚመጣውን 'Download APK' ሊንክ በመጫን በቀጥታ ስልክዎ ላይ ያውርዱት።"
+                        title = "በኮምፒውተር ላይ ለመጫን (PC / Laptop / Mac)",
+                        description = "በኮምፒውተርዎ Google Chrome ወይም Microsoft Edge ብሮውዘር ላይ ሊንኩን ይክፈቱ። ከአድራሻ መጻፊያ መስመሩ (URL bar) ቀኝ በኩል ያለውን 'Install app / መተግበሪያውን ጫን ⊕' ምልክት ይጫኑ። ያለምንም ጭነት እንደ ዴስክቶፕ ሶፍትዌር ሆኖ ይሰራል!"
                     )
 
                     InstallStepRow(
                         stepNumber = "3",
-                        title = "ለሌሎች ማጋራት (Share)",
-                        description = "የወረደውን የ .apk ፋይል በቴሌግራም (Telegram)፣ በሼርኢት (ShareIt) ወይም በብሉቱዝ ለባልደረባዎችዎ በሴኮንዶች ውስጥ መላክ ይችላሉ።"
+                        title = "የተቋማት መረጃ ቋት መክፈት (Isolated Institution DB)",
+                        description = "የአማራ ክልል ኮንስትራክሽን ባለስልጣን ቅርንጫፎች፣ ከተሞች ወይም የግል ተቋራጮችና አማካሪዎች የራሳቸውን መረጃ ቋት በመምረጥ ወይም አዲስ በመክፈት የራሳቸውን መረጃ ብቻ የሚያዩበት የተከለለ አሰራር ያገኛሉ።"
                     )
 
                     InstallStepRow(
                         stepNumber = "4",
-                        title = "ስልክ ላይ መጫን (Install)",
-                        description = "በስልክዎ የወረደውን ፋይል ሲከፍቱ 'Unknown Sources' ፈቃድ በመስጠት መተግበሪያውን ሙሉ በሙሉ ይጫኑት። ከመስመር ውጭ (Offline) ይሰራል!"
+                        title = "ከመስመር ውጭ (Offline) አሰራር",
+                        description = "አንዴ በስልክዎ ወይም በኮምፒውተርዎ ከተጫነ በኋላ ያለ ኢንተርኔት (Offline) መረጃ መመዝገብ፣ ማየትና መስራት ያስችላል። ኢንተርኔት ሲያገኝ በራሱ ይገናኛል።"
                     )
                 }
 
@@ -4314,18 +5115,48 @@ fun ShareInstallDialog(
                 // Action Buttons
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
+                    Button(
+                        onClick = {
+                            onDownloadManualPdf()
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = ConstructionTeal),
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(8.dp),
+                        contentPadding = PaddingValues(vertical = 10.dp)
+                    ) {
+                        Icon(Icons.Default.MenuBook, contentDescription = null, modifier = Modifier.size(15.dp))
+                        Spacer(modifier = Modifier.width(3.dp))
+                        Text("መመሪያ PDF", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                    }
+
+                    Button(
+                        onClick = {
+                            onDownloadKotlinToApkPdf()
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = SafetyOrange),
+                        modifier = Modifier.weight(1.1f),
+                        shape = RoundedCornerShape(8.dp),
+                        contentPadding = PaddingValues(vertical = 10.dp)
+                    ) {
+                        Icon(Icons.Default.Smartphone, contentDescription = null, modifier = Modifier.size(15.dp))
+                        Spacer(modifier = Modifier.width(3.dp))
+                        Text("ከዜሮ እስከ APK PDF", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                    }
+
                     Button(
                         onClick = {
                             val shareIntent = Intent(Intent.ACTION_SEND).apply {
                                 type = "text/plain"
-                                putExtra(Intent.EXTRA_SUBJECT, "Construction BYA")
+                                putExtra(Intent.EXTRA_SUBJECT, "የኮንስትራክሽን ግንባታዎች መረብ - ያለምንም APK የሚሰራ")
                                 putExtra(Intent.EXTRA_TEXT, """
-                                    Construction BYA - የኮንስትራክሽን ግንባታዎች መረብ መተግበሪያ
+                                    የአማራ ክልል ኮንስትራክሽን ባለስልጣን - የዲጂታል መረጃና ቁጥጥር ስርዓት
                                     
-                                    በስልክዎ ላይ በቀጥታ ለመጫን ይህንን ሊንክ ይክፈቱ፡
+                                    ያለምንም APK ፋይል በቀጥታ በስልክዎ ወይም በኮምፒውተርዎ ለመጫን ይህንን ሊንክ ይክፈቱ፡
                                     https://ais-pre-gkbshauubl4rx4uq45c3no-180667634259.europe-west1.run.app
+                                    
+                                    (በስልክ 'Add to Home screen' በማለት፤ በኮምፒውተር በChrome 'Install app' በማለት ያለ ምንም ፋይል ማውረድ በቀጥታ ይጫኑ)
                                 """.trimIndent())
                             }
                             context.startActivity(Intent.createChooser(shareIntent, "ለማጋራት ይምረጡ"))
@@ -4335,20 +5166,22 @@ fun ShareInstallDialog(
                         shape = RoundedCornerShape(8.dp),
                         contentPadding = PaddingValues(vertical = 10.dp)
                     ) {
-                        Icon(Icons.Default.Share, contentDescription = null, modifier = Modifier.size(16.dp))
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text("ሊንክ አጋራ", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                        Icon(Icons.Default.Share, contentDescription = null, modifier = Modifier.size(15.dp))
+                        Spacer(modifier = Modifier.width(3.dp))
+                        Text("ሊንክ አጋራ", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = Color.White)
                     }
+                }
 
-                    OutlinedButton(
-                        onClick = onDismiss,
-                        border = BorderStroke(1.dp, Color.Gray),
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(8.dp),
-                        contentPadding = PaddingValues(vertical = 10.dp)
-                    ) {
-                        Text("ዝጋ", fontSize = 12.sp, color = Color.White)
-                    }
+                Spacer(modifier = Modifier.height(6.dp))
+
+                OutlinedButton(
+                    onClick = onDismiss,
+                    border = BorderStroke(1.dp, Color.Gray),
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(8.dp),
+                    contentPadding = PaddingValues(vertical = 8.dp)
+                ) {
+                    Text("ዝጋ (Close)", fontSize = 11.sp, color = Color.White)
                 }
             }
         }
